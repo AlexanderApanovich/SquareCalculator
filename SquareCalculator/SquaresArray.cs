@@ -78,6 +78,7 @@ namespace SquareCalculator
 
         public void DecreasingSort()
         {
+            //Сортировка по убыванию
             if (length <= 1) return;
             for (int i = 0; i < length; i++)
             {

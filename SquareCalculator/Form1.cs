@@ -15,7 +15,6 @@ namespace SquareCalculator
     {
         private int L;
         private int W;
-        //private int numberOfPlates { get; set; }
         RectanglesArray blankRectangles;
         SquaresArray squares;
 
@@ -27,8 +26,8 @@ namespace SquareCalculator
         private void Form1_Load(object sender, EventArgs e)
         {
             //dataGridView1
-            int w1 = 35; //№
-            int w2 = 90; //Количество
+            int w1 = 35; //№ (ширина)
+            int w2 = 90; //Количество (ширина)
 
             var column1 = new DataGridViewColumn();
             column1.HeaderText = "№"; //текст в шапке
@@ -53,14 +52,19 @@ namespace SquareCalculator
             dataGridView1.Columns.Add(column2);
             dataGridView1.Columns.Add(column3);
 
-            for (int i = 0; i < numericUpDown1.Value; i++)
-                dataGridView1.Rows.Add(i + 1, 50 - i * 10, 1); //второй столбец убрать!
+            numericUpDown1.Value = 10;
+            dataGridView1.RowCount = (int)numericUpDown1.Value + 1;
+            for (int i = 0; i < dataGridView1.RowCount; i++)
+            {
+                dataGridView1["number", i].Value = i + 1;
+                dataGridView1["count", i].Value = 1;
+            }
 
             dataGridView1.RowHeadersVisible = false; //первый столбец не виден
             dataGridView1.AllowUserToAddRows = false; //запрешаем пользователю самому добавлять строки
 
             //dataGridView2
-            int w4 = 50;
+            int w4 = 100;
 
             var column5 = new DataGridViewColumn();
             column5.HeaderText = "№";
@@ -92,11 +96,10 @@ namespace SquareCalculator
             button2.Enabled = false;
         }
 
-
-
-
-        private void button1_Click(object sender, EventArgs e)
+        private void button1_Click(object sender, EventArgs e) //Рассчитать
         {
+            textBox3.Text = "";
+            textBox4.Text = "";
             dataGridView2.Rows.Clear();
             int nSquares = 0;
 
@@ -106,9 +109,19 @@ namespace SquareCalculator
                 MessageBox.Show("Введите корректные размеры листа!", "Ошибка");
                 return;
             }
-            for (int i = 0; i < dataGridView1.RowCount; i++)
-                if (Convert.ToInt32(dataGridView1["side", i].Value) > 0)
-                    nSquares++;
+
+            try
+            {
+                for (int i = 0; i < dataGridView1.RowCount; i++)
+                    if ((Convert.ToInt32(dataGridView1["side", i].Value) > 0)
+                        && (Convert.ToInt32(dataGridView1["count", i].Value) > 0))
+                        nSquares++;
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Введите корректные размеры квадратов!", "Критическая ошибка");
+                return;
+            }
 
             if (nSquares == 0)
             {
@@ -119,19 +132,22 @@ namespace SquareCalculator
             squares = new SquaresArray(0);
 
             //Ввод квадратов
-            for (int i = 0; i < dataGridView1.RowCount; i++)
-                if (Convert.ToInt32(dataGridView1["side", i].Value) > 0)
-                {
-                    for (int j = 0; j < Convert.ToInt32(dataGridView1["count", i].Value); j++)
-                        squares.Add(new Square(0, 0,
-                            Convert.ToInt32(dataGridView1["side", i].Value)));
-                }
+            try
+            {
+                for (int i = 0; i < dataGridView1.RowCount; i++)
+                    if (Convert.ToInt32(dataGridView1["side", i].Value) > 0)
+                    {
+                        for (int j = 0; j < Convert.ToInt32(dataGridView1["count", i].Value); j++)
+                            squares.Add(new Square(0, 0,
+                                Convert.ToInt32(dataGridView1["side", i].Value)));
+                    }
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Введите корректные размеры квадратов!", "Критическая ошибка");
+                return;
+            }
             squares.DecreasingSort();
-
-
-
-            //L = Convert.ToInt32(textBox1.Text);
-            //W = Convert.ToInt32(textBox2.Text);
 
             if (squares[0].size > Math.Min(L, W))
             {
@@ -142,42 +158,15 @@ namespace SquareCalculator
             blankRectangles = new RectanglesArray(0);
 
             int k;
-            // blankRectangles.numberOfPlates = 0;
 
-            BinaryWriter dataOut = new BinaryWriter(new FileStream("C:/Users/User/Desktop/OutData.txt", FileMode.Create));
-            //for (int i = 0; i < squares.length; i++)
-            //    dataOut.Write("Вывод: \t x = " + squares[i].x +
-            //    ", \t y = " + squares[i].y + ", \t size = " +
-            //    squares[i].size + Environment.NewLine);
-
+            //Разделение листов
             for (int i = 0; i < squares.length; i++)
             {
-                k = 0;
-
-                dataOut.Write("До сортировки, Итерация № " + i +
-                   Environment.NewLine);
-                for (int j = 0; j < blankRectangles.length; j++)
-                    // if (blankRectangles[j].plate ==1)
-                    dataOut.Write("\t x = " + blankRectangles[j].x +
-                    ", \t y = " + blankRectangles[j].y +
-                    ", \t W = " + blankRectangles[j].w +
-                    ", \t L = " + blankRectangles[j].l +
-                    ", \t plate = " + blankRectangles[j].plate +
-                    Environment.NewLine);
+                k = 0; //Индекс пустого прямоугольника
 
                 blankRectangles.Sort();
 
-                dataOut.Write("После сортировки, Итерация № " + i +
-                   Environment.NewLine);
-                for (int j = 0; j < blankRectangles.length; j++)
-                    // if (blankRectangles[j].plate ==1)
-                    dataOut.Write("\t x = " + blankRectangles[j].x +
-                    ", \t y = " + blankRectangles[j].y +
-                    ", \t W = " + blankRectangles[j].w +
-                    ", \t L = " + blankRectangles[j].l +
-                    ", \t plate = " + blankRectangles[j].plate +
-                    Environment.NewLine);
-
+                //Добавляем новый лист, если нужно
                 if ((blankRectangles.length == 0) || (squares[i].size > Math.Min(blankRectangles[blankRectangles.length - 1].w,
                 blankRectangles[blankRectangles.length - 1].l)))
                 {
@@ -185,34 +174,18 @@ namespace SquareCalculator
                     blankRectangles.Add(new Rectangle(0, 0, W, L, blankRectangles.numberOfPlates));
                     blankRectangles.Sort();
                 }
-
-
-
+                //Основная часть разделения и подсчета листов
                 while (!blankRectangles.DivideByTwo(k, squares, i)) k++;
-
-
-                   
             }
 
-            label4.Text = "Необходимое количество листов: " + blankRectangles.numberOfPlates;
+            //Вывод количества листов
+            textBox4.Text = Convert.ToString(blankRectangles.numberOfPlates);
 
-            dataOut.Close();
-
-            dataOut = new BinaryWriter(new FileStream("C:/Users/User/Desktop/OutData1.txt", FileMode.Create));
-
-            for (int i = 0; i < squares.length; i++)
-                dataOut.Write("Вывод: \t x = " + squares[i].x +
-                 ", \t y = " + squares[i].y + ", \t size = " +
-                 squares[i].size + ", \t plate = " + squares[i].plate + Environment.NewLine);
-
-
+            //Вывод во вторую таблицу информации о квадратах
             for (int i = 0; i < squares.length; i++)
             {
                 dataGridView2.Rows.Add();
             }
-
-
-
             for (int i = 0; i < squares.length; i++)
             {
                 dataGridView2["number", i].Value = i + 1;
@@ -220,20 +193,53 @@ namespace SquareCalculator
                 dataGridView2["plate", i].Value = squares[i].plate;
             }
 
-            //контроль типов
+            //Подсчет количества размеров прямоугольников
+            List<int> squaresSingle = new List<int>();
 
-            //сортировка второй таблицы
+            for (int i = 0; i < dataGridView1.RowCount; i++)
+                if (Convert.ToInt32(dataGridView1["side", i].Value) > 0)
+                    squaresSingle.Add(Convert.ToInt32(dataGridView1["side", i].Value));
+            squaresSingle = squaresSingle.Distinct().ToList();
 
-            //визуализация:
-            //5) размер использованного листа (через максимальный x+side и y+side квадрата листа)
+            //Подсчет необходимой информации о листах и вывод в TextBox
+            int n;
+            int maxW, maxL;
 
+            for (int i = 1; i <= blankRectangles.numberOfPlates; i++)
+            {
+                //Задействованные размеры листа
+                maxW = 0;
+                maxL = 0;
+                for (int j = 0; j < squares.length; j++)
+                    if (squares[j].plate == i)
+                    {
+                        if (squares[j].y + squares[j].size > maxW) maxW = squares[j].y + squares[j].size;
+                        if (squares[j].x + squares[j].size > maxL) maxL = squares[j].x + squares[j].size;
+                    }
+
+                textBox3.Text += "------------------Лист №" + i + "--------------";
+                textBox3.Text += Environment.NewLine;
+                textBox3.Text += "Использованные размеры листа " + Environment.NewLine + "(Длина x Ширина): " + maxL + " x " + maxW;
+                textBox3.Text += Environment.NewLine;
+                textBox3.Text += "Использованные квадраты:";
+                textBox3.Text += Environment.NewLine;
+
+                //Количество квадратов одного размера на листе
+                for (int j = 0; j < squaresSingle.Count; j++)
+                {
+                    n = 0;
+
+                    for (int l = 0; l < squares.length; l++)
+                        if (squares[l].plate == i)
+                            if (squares[l].size == squaresSingle[j])
+                            {
+                                n++;
+
+                            }
+                    if (n != 0) textBox3.Text += n + " шт. \t" + squaresSingle[j] + " \tx\t" + squaresSingle[j] + " \t " + Environment.NewLine;
+                }
+            }
             button2.Enabled = true;
-
-
-
-
-
-            dataOut.Close();
         }
 
         private void numericUpDown1_ValueChanged(object sender, EventArgs e)
@@ -241,6 +247,8 @@ namespace SquareCalculator
             if (numericUpDown1.Value > 0)
             {
                 dataGridView1.RowCount = (int)numericUpDown1.Value;
+
+                //Заполнение ячеек
                 for (int i = 0; i < dataGridView1.RowCount; i++)
                 {
                     dataGridView1["number", i].Value = i + 1;
@@ -250,7 +258,7 @@ namespace SquareCalculator
             button2.Enabled = false;
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void button2_Click(object sender, EventArgs e) //Изобразить
         {
             Form2 form = new Form2(blankRectangles, squares, W, L);
             form.Show();
@@ -272,3 +280,28 @@ namespace SquareCalculator
         }
     }
 }
+
+
+//Дебаг
+#region
+//BinaryWriter dataOut = new BinaryWriter(new FileStream("C:/Users/User/Desktop/OutData.txt", FileMode.Create));
+
+//for (int i = 0; i < squares.length; i++)
+//    dataOut.Write("Вывод: \t x = " + squares[i].x +
+//    ", \t y = " + squares[i].y + ", \t size = " +
+//    squares[i].size + Environment.NewLine);
+
+//dataOut.Write("Итерация № " + i +
+//   Environment.NewLine);
+//for (int j = 0; j < blankRectangles.length; j++)
+//    // if (blankRectangles[j].plate ==1)
+//    dataOut.Write("\t x = " + blankRectangles[j].x +
+//    ", \t y = " + blankRectangles[j].y +
+//    ", \t W = " + blankRectangles[j].w +
+//    ", \t L = " + blankRectangles[j].l +
+//    ", \t plate = " + blankRectangles[j].plate +
+//    Environment.NewLine);
+
+
+//    dataOut.Close();
+#endregion
